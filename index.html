@@ -553,7 +553,124 @@ public class DC_07_41 {
 javac DC_07_41.java
 java  DC_07_41     
 
----------------------------------------------------------------------------------------------------------------------
-exp 8
+------------------------------------------------------------------------------------------------------------- 
+8.Load Balancing 
 
-                              
+import java.util.*;
+
+public class LoadBalancer {
+    private Map<String, List<String>> servers;
+
+    public LoadBalancer() {
+        servers = new HashMap<>();
+    }
+
+    public void addServer(Scanner scanner) {
+        System.out.print("Enter server ID to add: ");
+        String serverId = scanner.nextLine().trim();
+        if (!servers.containsKey(serverId)) {
+            servers.put(serverId, new ArrayList<>());
+            System.out.println("Server " + serverId + " added.");
+        } else {
+            System.out.println("Server " + serverId + " already exists.");
+        }
+    }
+
+    public void removeServer(Scanner scanner) {
+        System.out.print("Enter server ID to remove: ");
+        String serverId = scanner.nextLine().trim();
+        if (servers.containsKey(serverId)) {
+            servers.remove(serverId);
+            System.out.println("Server " + serverId + " removed.");
+        } else {
+            System.out.println("Server " + serverId + " does not exist.");
+        }
+    }
+
+    public void addProcess(Scanner scanner) {
+        System.out.print("Enter server ID to add process to: ");
+        String serverId = scanner.nextLine().trim();
+        if (servers.containsKey(serverId)) {
+            System.out.print("Enter process ID to add: ");
+            String processId = scanner.nextLine().trim();
+            servers.get(serverId).add(processId);
+            System.out.println("Process " + processId + " added to Server " + serverId + ".");
+        } else {
+            System.out.println("Server " + serverId + " does not exist.");
+        }
+    }
+
+    public void removeProcess(Scanner scanner) {
+        System.out.print("Enter server ID to remove process from: ");
+        String serverId = scanner.nextLine().trim();
+        if (servers.containsKey(serverId)) {
+            System.out.print("Enter process ID to remove: ");
+            String processId = scanner.nextLine().trim();
+            List<String> processList = servers.get(serverId);
+            if (processList.contains(processId)) {
+                processList.remove(processId);
+                System.out.println("Process " + processId + " removed from Server " + serverId + ".");
+            } else {
+                System.out.println("Process " + processId + " not found in Server " + serverId + ".");
+            }
+        } else {
+            System.out.println("Server " + serverId + " does not exist.");
+        }
+    }
+
+    public void displayServers() {
+        System.out.println("\nCurrent Load Balancer State:");
+        if (servers.isEmpty()) {
+            System.out.println("No servers available.");
+        } else {
+            for (Map.Entry<String, List<String>> entry : servers.entrySet()) {
+                System.out.println("Server " + entry.getKey() + ": " + entry.getValue());
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        LoadBalancer lb = new LoadBalancer();
+        Scanner scanner = new Scanner(System.in);
+
+        while (true) {
+            System.out.println("\n==== Load Balancer Menu ====");
+            System.out.println("1. Add Server");
+            System.out.println("2. Remove Server");
+            System.out.println("3. Add Process");
+            System.out.println("4. Remove Process");
+            System.out.println("5. Display Servers");
+            System.out.println("6. Exit");
+            System.out.print("Enter your choice: ");
+
+            String choice = scanner.nextLine().trim();
+
+            switch (choice) {
+                case "1":
+                    lb.addServer(scanner);
+                    break;
+                case "2":
+                    lb.removeServer(scanner);
+                    break;
+                case "3":
+                    lb.addProcess(scanner);
+                    break;
+                case "4":
+                    lb.removeProcess(scanner);
+                    break;
+                case "5":
+                    lb.displayServers();
+                    break;
+                case "6":
+                    System.out.println("Exiting...");
+                    scanner.close();
+                    return;
+                default:
+                    System.out.println("Invalid choice, please try again.");
+            }
+        }
+    }
+}
+
+javac LoadBalancer.java
+java LoadBalancer
