@@ -1,0 +1,58 @@
+i. One server to one client (Same device) 
+import java.io.*;
+import java.net.*;
+
+public class Server {
+    public static void main(String[] args) {
+        try {
+            ServerSocket serverSocket = new ServerSocket(12345);
+            System.out.println("Server is waiting for connection...");
+
+            Socket clientSocket = serverSocket.accept();
+            System.out.println("Client connected.");
+
+            DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+            DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream());
+
+            String message = in.readUTF();
+            System.out.println("Received from client: " + message);
+
+            out.writeUTF("Hello from server!");
+
+            in.close();
+            out.close();
+            clientSocket.close();
+            serverSocket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+
+import java.io.*;
+import java.net.*;
+
+public class Client {
+    public static void main(String[] args) {
+        try {
+            Socket socket = new Socket("127.0.0.1", 12345);
+            System.out.println("Connected to server.");
+
+            DataInputStream in = new DataInputStream(socket.getInputStream());
+            DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+
+            out.writeUTF("Hello from client!");
+
+            String response = in.readUTF();
+            System.out.println("Received from server: " + response);
+
+            in.close();
+            out.close();
+            socket.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
