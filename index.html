@@ -1,3 +1,4 @@
+exp1
 i. One server to one client (Same device) 
 import java.io.*;
 import java.net.*;
@@ -209,4 +210,133 @@ public class Client {
         }
     }
 }
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+----------------------------------------------------------------------------------------
+EXP 6
+Bully Algorithm
+import java.util.Scanner;
+
+class Bully {
+    static int n;
+    static int coordinator;
+    static int[] processes;
+    static boolean[] active;
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.print("Enter number of processes: ");
+        n = sc.nextInt();
+        processes = new int[n];
+        active = new boolean[n];
+
+        System.out.println("Enter process IDs:");
+        for (int i = 0; i < n; i++) {
+            processes[i] = sc.nextInt();
+            active[i] = true;
+        }
+
+        System.out.print("Enter process initiating election (index): ");
+        int initiator = sc.nextInt();
+       
+        startElection(initiator);
+       
+        System.out.println("Final Coordinator: " + coordinator);
+        sc.close();
+    }
+
+    static void startElection(int initiatorIndex) {
+        System.out.println("Process " + processes[initiatorIndex] + " initiates election");
+       
+        // Send election messages to all higher processes
+        boolean higherExists = false;
+       
+        for (int i = 0; i < n; i++) {
+            if (active[i] && processes[i] > processes[initiatorIndex]) {
+                System.out.println("Process " + processes[initiatorIndex] + " sends election message to process " + processes[i]);
+                higherExists = true;
+               
+                // Higher process responds with OK
+                System.out.println("Process " + processes[i] + " responds with OK to " + processes[initiatorIndex]);
+               
+                // Higher process starts its own election
+                startElection(i);
+                break;
+            }
+        }
+       
+        // If no higher process exists or responds, this process becomes coordinator
+        if (!higherExists) {
+            coordinator = processes[initiatorIndex];
+            System.out.println("Process " + coordinator + " becomes the coordinator");
+           
+            // Announce to all other processes
+            for (int i = 0; i < n; i++) {
+                if (i != initiatorIndex && active[i]) {
+                    System.out.println("Process " + coordinator + " sends coordinator message to process " + processes[i]);
+                }
+            }
+        }
+    }
+}
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Ring Algorithm
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+class RingElection {
+    static int n; // Number of processes
+    static int[] processes; // Array of process IDs
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        // Input: Number of processes
+        System.out.print("Enter number of processes: ");
+        n = sc.nextInt();
+        processes = new int[n];
+
+        // Input: Process IDs
+        System.out.println("Enter unique process IDs:");
+        for (int i = 0; i < n; i++) {
+            processes[i] = sc.nextInt();
+        }
+
+        // Input: Initiator process
+        System.out.print("Enter the index of process initiating election (0 to " + (n - 1) + "): ");
+        int initiator = sc.nextInt();
+
+        // Validate initiator index
+        if (initiator < 0 || initiator >= n) {
+            System.out.println("Invalid initiator index. Exiting...");
+            sc.close();
+            return;
+        }
+
+        startElection(initiator);
+        sc.close();
+    }
+
+    static void startElection(int initiator) {
+        List<Integer> electionMessage = new ArrayList<>();
+        int current = initiator;
+
+        System.out.println("\nElection process started by Process " + processes[initiator]);
+
+        // Pass the election message around the ring
+        do {
+            int next = (current + 1) % n; // Circular ring structure
+            electionMessage.add(processes[current]); // Append current process ID
+            System.out.println("Process " + processes[current] + " passes election message to Process " + processes[next] +
+                               " with message: " + electionMessage);
+            current = next;
+        } while (current != initiator);
+
+        // Find the highest process ID
+        int coordinator = electionMessage.stream().max(Integer::compareTo).get();
+
+        System.out.println("\nFinal message received at initiator: " + electionMessage);
+        System.out.println("Process " + coordinator + " is elected as the new Coordinator.");
+    }
+}
+-----------------------------------------------------------------------------------------------------------        
