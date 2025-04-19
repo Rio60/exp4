@@ -214,7 +214,153 @@ public class Client {
         }
     }
 }
+------------------------------------------------------------------------------------------------
+(DistributedSystemSimulation.java)
 
+import java.util.*;
+import java.text.SimpleDateFormat;
+
+class Process {
+    private int id;
+    private LamportClock clock;
+    private List<Event> eventLog;
+
+    public Process(int id) {
+        this.id = id;
+        this.clock = new LamportClock();
+        this.eventLog = new ArrayList<>();
+    }
+
+    public void executeLocalEvent(String description) {
+        clock.tick();
+        logEvent(description);
+    }
+
+    public void sendMessage(Process receiver, String message) {
+        clock.sendEvent();
+        logEvent("Sent message to Process " + receiver.getId() + ": " + message);
+        receiver.receiveMessage(this, clock.getClock(), message);
+    }
+
+    public void receiveMessage(Process sender, int messageClock, String message) {
+        clock.receiveEvent(messageClock);
+        logEvent("Received message from Process " + sender.getId() + ": " + message);
+    }
+
+    private void logEvent(String description) {
+        eventLog.add(new Event(clock.getClock(), description));
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public int getCurrentClock() {
+        return clock.getClock();
+    }
+
+    public List<Event> getEventLog() {
+        return eventLog;
+    }
+}
+
+class LamportClock {
+    private int clock;
+
+    public LamportClock() {
+        clock = 0;
+    }
+
+    public synchronized void tick() {
+        clock++;
+    }
+
+    public synchronized void sendEvent() {
+        clock++;
+    }
+
+    public synchronized void receiveEvent(int receivedClock) {
+        clock = Math.max(clock, receivedClock) + 1;
+    }
+
+    public int getClock() {
+        return clock;
+    }
+}
+
+class Event {
+    private final int timestamp;
+    private final String description;
+    private final String realTime;
+
+    public Event(int timestamp, String description) {
+        this.timestamp = timestamp;
+        this.description = description;
+        this.realTime = new SimpleDateFormat("HH:mm:ss.SSS").format(new Date());
+    }
+
+    @Override
+    public String toString() {
+        return String.format("[%s] (Logical Time: %d) %s", realTime, timestamp, description);
+    }
+}
+
+public class DistributedSystemSimulation {
+    private static final List<Process> processes = new ArrayList<>();
+
+    public static void main(String[] args) {
+        for (int i = 1; i <= 3; i++) {
+            processes.add(new Process(i));
+        }
+
+        System.out.println("Initial System State:");
+        printSystemState();
+
+        simulateEvents();
+
+        System.out.println("\nFinal System State:");
+        printSystemState();
+
+        System.out.println("\nDetailed Event Logs:");
+        printEventLogs();
+    }
+
+    private static void simulateEvents() {
+        System.out.println("\nSimulating distributed system events...\n");
+
+        processes.get(0).executeLocalEvent("Local computation");
+
+        processes.get(0).sendMessage(processes.get(1), "Hello Process 2");
+
+        processes.get(1).executeLocalEvent("Processing received data");
+
+        processes.get(1).sendMessage(processes.get(2), "Forwarding to Process 3");
+
+        processes.get(2).executeLocalEvent("Analyzing received data");
+
+        processes.get(2).sendMessage(processes.get(0), "Sending results back");
+    }
+
+    private static void printSystemState() {
+        for (Process p : processes) {
+            System.out.printf("Process %d - Logical Clock: %d%n",
+                            p.getId(), p.getCurrentClock());
+        }
+    }
+
+    private static void printEventLogs() {
+        for (Process p : processes) {
+            System.out.printf("%nProcess %d Event Log:%n", p.getId());
+            for (Event event : p.getEventLog()) {
+                System.out.println(event);
+            }
+        }
+    }
+}
+
+javac DistributedSystemSimulation.java
+java DistributedSystemSimulation
+            
 ------------------------------------------------------------------------------------------------
 
 EXP 6
@@ -351,3 +497,58 @@ class RingElection {
     }
 }
 -------------------------------------------------------------------------------------------------------------        
+          
+ 7.Mutual Exclusion (riccart Agarwala)           
+(DC_07_41.java)
+            
+package DC;
+
+import java.util.Scanner;
+
+public class DC_07_41 {
+    public static void main(String[] args) {
+        Scanner scanner = new Scanner(System.in);
+
+        int[] process_time = new int[10];
+
+        System.out.println("*** Ricart Agrawala Algorithm ***");
+        System.out.print("Enter the number of processes: ");
+        int n = Integer.parseInt(scanner.nextLine());
+
+        System.out.println("Now enter their timestamps...");
+
+
+        for (int i = 0; i < n; i++) {
+            System.out.print("Enter the timestamp for Process [" + i + "]: ");
+            process_time[i] = Integer.parseInt(scanner.nextLine());
+        }
+
+        System.out.print("Enter 2 process who wants a shared resource:  ");
+        String[] processIds = scanner.nextLine().split(" ");
+        int p1 = Integer.parseInt(processIds[0]);
+        int p2 = Integer.parseInt(processIds[1]);
+
+        for (int i = 0; i < n; i++) {
+            System.out.println("Process [" + p1 + "] sends timestamp " + process_time[p1] + " to Process [" + i +"]" );
+        }
+
+        for (int i = 0; i < n; i++) {
+            System.out.println("Process [" + p2 + "] sends timestamp " + process_time[p2] + " to Process [" + i +"]" );
+        }
+
+        int p = (process_time[p1] < process_time[p2]) ? p1 : p2;
+        int t = Math.min(process_time[p1], process_time[p2]);
+
+        System.out.println("Process [" + p + "] has the lowest timestamp = " + t);
+        for (int i = 0; i<n; i++){
+            if (i==p) continue;
+            else System.out.println("Process [" + i + "] sent OK! message to Process [" + p +"]" );
+        }
+        System.out.println("Hence Process [" + p + "] is accessing the shared resource, once it is done using it,");
+        System.out.println("Process [" + (p1 == p? p2:p1) + "] can use it");
+
+        scanner.close();
+    }
+}
+javac DC_07_41.java
+java  DC_07_41     
